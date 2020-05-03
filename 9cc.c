@@ -125,6 +125,17 @@ Token *tokenize() {
             continue;
         }
 
+        if (startswith(p, ">=") || startswith(p, "<=")) {
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
+            continue;
+        }
+
+        if (startswith(p, ">") || startswith(p, "<")) {
+            cur = new_token(TK_RESERVED, cur, p++, 1);
+            continue;
+        }
+
         if (strchr("+-*/()", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
@@ -146,7 +157,6 @@ Token *tokenize() {
 // 
 // Parser
 // 
-//
 typedef enum {
     ND_ADD, // +
     ND_SUB, // -
@@ -155,6 +165,8 @@ typedef enum {
     ND_NUM, // 整数
     ND_EQ,  // ==
     ND_NE,  // !=
+    ND_LT,  // <
+    ND_LE,  // <=
 } NodeKind;
 
 typedef struct Node Node;
@@ -188,6 +200,7 @@ Node *new_num(int val) {
 
 Node *expr();
 Node *equality();
+Node *relational();
 Node *add();
 Node *mul();
 Node *unary();
@@ -198,19 +211,38 @@ Node *expr() {
     return equality();
 }
 
-// equality = add("==" add | "!=" add)*
+// equality = relational("==" relational | "!=" relational)*
 Node *equality() {
-    Node *node = add();
+    Node *node = relational();
 
     for (;;) {
         if (consume("==")) 
-            node = new_binary(ND_EQ, node, add());
+            node = new_binary(ND_EQ, node, relational());
         else if (consume("!=")) 
-            node = new_binary(ND_NE, node, add());
+            node = new_binary(ND_NE, node, relational());
         else
             return node;
     }
 }
+
+// relational = add("<=" add | ">=" add | "<" add | ">" add)*
+Node *relational() {
+    Node *node = add();
+
+    for (;;) {
+        if (consume("<"))
+            node = new_binary(ND_LT, node, add());
+        else if (consume("<="))
+            node = new_binary(ND_LE, node, add());
+        else if (consume(">")) 
+            node = new_binary(ND_LT, add(), node);
+        else if (consume(">="))
+            node = new_binary(ND_LE, add(), node);
+        else
+            return node;
+    }
+}
+
 // add = mul("+" mul | "-" mul)*
 Node *add() {
     Node *node = mul();
@@ -295,6 +327,16 @@ void gen(Node *node) {
         case ND_NE:
             printf("  cmp rax, rdi\n");
             printf("  setne al\n");
+            printf("  movzb rax, al\n");
+            break;
+        case ND_LT:
+            printf("  cmp rax, rdi\n");
+            printf("  setl al\n");
+            printf("  movzb rax, al\n");
+            break;
+        case ND_LE:
+            printf("  cmp rax, rdi\n");
+            printf("  setle al\n");
             printf("  movzb rax, al\n");
             break;
         case ND_NUM:
