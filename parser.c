@@ -1,13 +1,12 @@
 #include <stdlib.h>
 #include "9cc.h"
 
-Node *expr();
-Node *equality();
-Node *relational();
-Node *add();
-Node *mul();
-Node *unary();
-Node *primary();
+static Node *equality();
+static Node *relational();
+static Node *add();
+static Node *mul();
+static Node *unary();
+static Node *primary();
 
 Node *new_node(NodeKind kind) {
     Node *node = calloc(1, sizeof(Node));
@@ -35,7 +34,7 @@ Node *expr() {
 }
 
 // equality = relational("==" relational | "!=" relational)*
-Node *equality() {
+static Node *equality() {
     Node *node = relational();
 
     for (;;) {
@@ -49,7 +48,7 @@ Node *equality() {
 }
 
 // relational = add("<=" add | ">=" add | "<" add | ">" add)*
-Node *relational() {
+static Node *relational() {
     Node *node = add();
 
     for (;;) {
@@ -67,7 +66,7 @@ Node *relational() {
 }
 
 // add = mul("+" mul | "-" mul)*
-Node *add() {
+static Node *add() {
     Node *node = mul();
     
     for(;;) {
@@ -81,7 +80,7 @@ Node *add() {
 }
 
 // mul = unary("*" unary | "/" unary)*
-Node *mul() {
+static Node *mul() {
     Node *node = unary();
 
     for(;;) {
@@ -96,7 +95,7 @@ Node *mul() {
 
 // unary = ("+" | "-")? unary
 //       | primary
-Node *unary() {
+static Node *unary() {
     if (consume("+")) {
         return unary();
     }
@@ -107,7 +106,7 @@ Node *unary() {
 }
 
 // primary = "(" expr ")" | num
-Node *primary() {
+static Node *primary() {
     if (consume("(")) {
         Node *node = expr();
         expect(")");
