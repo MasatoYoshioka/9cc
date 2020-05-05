@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "9cc.h"
 
+static Node *stmt(void);
+Node *expr(void);
 static Node *equality();
 static Node *relational();
 static Node *add();
@@ -28,7 +30,25 @@ Node *new_num(int val) {
     return node;
 }
 
-// expr = add
+Node *program() {
+    Node head = {};
+    Node *cur = &head;
+
+    while (!at_eof()) {
+        cur->next = stmt();
+        cur = cur->next;
+    }
+    return head.next;
+}
+
+// stmt = expr ";"
+static Node *stmt() {
+    Node *node = expr();
+    expect(";");
+    return node;
+}
+
+// expr = equality
 Node *expr() {
     return equality();
 }

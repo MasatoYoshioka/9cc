@@ -59,11 +59,11 @@ void codegen(Node *node) {
     printf(".global main\n");
     printf("main:\n");
 
-    gen(node);
+    for (Node *n = node; n; n = n->next) {
+        gen(n);
+        printf("  pop rax\n");
+    }
 
-    // スタックトップに式全体の値が残っているはずなので、
-    // それをRAXにロードして関数からの返り値とする
-    printf("  pop rax\n");
     printf("  ret\n");
 
 }
