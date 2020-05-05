@@ -56,6 +56,6 @@ struct Node {
     int val; // kindがND_NUMの時に使う
 };
 
-void gen(Node *node);
+void codegen(Node *node);
 
 Node *expr(void);
