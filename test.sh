@@ -49,6 +49,7 @@ assert 1 '1>=1;'
 assert 0 '1>=2;'
 
 assert 3 '3; 4; 3;';
+assert 3 'a=3; b=1; a*b;';
+assert 97 'a=100; z=3; a-z;'
 
 echo OK
-

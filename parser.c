@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include "9cc.h"
 
-static Node *stmt(void);
-Node *expr(void);
+static Node *stmt();
+static Node *expr();
+static Node *assign();
 static Node *equality();
 static Node *relational();
 static Node *add();
@@ -48,9 +49,18 @@ static Node *stmt() {
     return node;
 }
 
-// expr = equality
-Node *expr() {
-    return equality();
+// expr = assign
+static Node *expr() {
+    return assign();
+}
+
+// equality("=" assign)?
+static Node *assign() {
+    Node *node = equality();
+
+    if (consume("="))
+        node = new_binary(ND_ASSIGN, node, assign());
+    return node;
 }
 
 // equality = relational("==" relational | "!=" relational)*
@@ -130,6 +140,14 @@ static Node *primary() {
     if (consume("(")) {
         Node *node = expr();
         expect(")");
+        return node;
+    }
+
+    Token *t = consume_ident();
+    if (t) {
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_LVAR;
+        node->offset = (t->str[0] - 'a' + 1) * 8;
         return node;
     }
     return new_num(expect_number());
