@@ -23,11 +23,6 @@ struct Token {
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
-bool consume(char *op);
-Token *consume_ident();
-void expect(char *go);
-int expect_number();
-bool at_eof();
 Token *tokenize();
 
 char *user_input;
