@@ -57,6 +57,15 @@ struct Node {
     int     offset; // kindがNO_VARの時に使う
 };
 
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next;  // 次の変数かNULL
+    char *name;  // 変数の名前
+    int  len;    // 名前の長さ
+    int  offset; // RBPからのオフセット
+};
+
 void codegen(Node *node);
 
 Node *program(void);

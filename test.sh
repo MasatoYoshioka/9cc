@@ -18,6 +18,7 @@ assert() {
     fi
 }
 
+assert 100 'foo = 50; bar = 50; foo + bar;'
 assert 0 '0;'
 assert 42 '42;'
 assert 21 '5+20-4;'

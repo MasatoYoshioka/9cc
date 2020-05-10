@@ -14,6 +14,15 @@ static Node *mul();
 static Node *unary();
 static Node *primary();
 
+LVar *locals;
+
+static LVar *find_lvar(Token *tok) {
+    for (LVar *var = locals; var; var = var->next)
+        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+            return var;
+    return NULL;
+}
+
 // エラーを報告するための関数
 // printfと同じ引数を取る
 void error(char *fmt, ...) {
@@ -86,6 +95,14 @@ Node *new_num(int val) {
     node->kind = ND_NUM;
     node->val = val;
     return node;
+}
+
+LVar *new_lvar(Token *tok) {
+    LVar *lvar = calloc(1, sizeof(LVar));
+    lvar->next = locals;
+    lvar->name = tok->str;
+    lvar->len = tok->len;;
+    return lvar;
 }
 
 Node *program() {
@@ -205,6 +222,13 @@ static Node *primary() {
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;
         node->offset = (t->str[0] - 'a' + 1) * 8;
+
+        LVar *lvar = find_lvar(t);
+        if (!lvar) {
+            LVar *lvar = new_lvar(t);
+            locals = lvar;
+            lvar->offset = locals->offset + 8;
+        }
         return node;
     }
     return new_num(expect_number());
