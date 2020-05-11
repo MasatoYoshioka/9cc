@@ -43,18 +43,19 @@ typedef enum {
     ND_LT,     // <
     ND_LE,     // <=
     ND_ASSIGN, // =
-    ND_LVAR,    // Local Variable
+    ND_LVAR,   // Local Variable
+    ND_RETURN, // Return
 } NodeKind;
 
 typedef struct Node Node;
 
 struct Node {
-    NodeKind kind; // ノードの型
-    Node     *next; // 次のノード
-    Node     *lhs; // 左辺
-    Node     *rhs; // 右辺
-    int      val; // kindがND_NUMの時に使う
-    int     offset; // kindがNO_VARの時に使う
+    NodeKind kind;   // ノードの型
+    Node     *next;  // 次のノード
+    Node     *lhs;   // 左辺
+    Node     *rhs;   // 右辺
+    int      val;    // kindがND_NUMの時に使う
+    int      offset; // kindがNO_VARの時に使う
 };
 
 typedef struct LVar LVar;
