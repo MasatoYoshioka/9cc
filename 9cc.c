@@ -29,11 +29,12 @@ void error(char *fmt, ...) {
     exit(1);
 }
 
-static long get_number(Token *tok) {
-    if (tok->kind != TK_NUM) {
+static long expect_number() {
+    if (token->kind != TK_NUM)
         error("数値ではありません");
-    }
-    return tok->val;
+    long val = token->val;
+    token = token->next;
+    return val;
 }
 
 static Token *new_token(TokenKind kind, Token *cur, char *str) {
@@ -90,16 +91,15 @@ int main(int argc, char **argv) {
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
-    printf("  mov rax, %ld\n", get_number(token));
+    printf("  mov rax, %ld\n", expect_number());
 
     while(token->kind != TK_EOF) {
         if (consume('+')) {
-            printf("  add rax, %ld\n", get_number(token));
+            printf("  add rax, %ld\n", expect_number());
         }
         if (consume('-')) {
-            printf("  sub rax, %ld\n", get_number(token));
+            printf("  sub rax, %ld\n", expect_number());
         }
-        token = token->next;
     }
     printf("  ret\n");
     return 0;
