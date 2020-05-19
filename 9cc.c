@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 typedef enum {
     TK_RESERVED, // punctuators
@@ -17,9 +18,17 @@ struct Token {
     char *str;
 };
 
+void error(char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
 static long get_number(Token *tok) {
     if (tok->kind != TK_NUM) {
-        exit(1);
+        error("数値ではありません");
     }
     return tok->val;
 }
@@ -54,7 +63,7 @@ static Token *tokenize(char *p) {
             continue;
         }
 
-        fprintf(stderr, "予期しない文字です: '%c'\n", *p);
+        error("予期しない文字列です");
     }
     new_token(TK_EOF, cur, 0);
     return head.next;
@@ -62,8 +71,7 @@ static Token *tokenize(char *p) {
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        fprintf(stderr, "%s: 引数の個数が正しくありません\n", argv[0]);
-        return 1;
+        error("引数の個数が正しくありません");
     }
 
     char *p = argv[1];
