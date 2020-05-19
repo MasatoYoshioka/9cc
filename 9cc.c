@@ -18,6 +18,8 @@ struct Token {
     char *str;
 };
 
+Token *token;
+
 void error(char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -75,23 +77,23 @@ int main(int argc, char **argv) {
     }
 
     char *p = argv[1];
-    Token *tok = tokenize(p);
+    token = tokenize(p);
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
-    printf("  mov rax, %ld\n", get_number(tok));
+    printf("  mov rax, %ld\n", get_number(token));
 
 
-    while(tok->kind != TK_EOF) {
-        if (tok->kind == TK_RESERVED) {
-            if (tok->val == '+') {
-                printf("  add rax, %ld\n", get_number(tok->next));
-            } else if (tok->val == '-') {
-                printf("  sub rax, %ld\n", get_number(tok->next));
+    while(token->kind != TK_EOF) {
+        if (token->kind == TK_RESERVED) {
+            if (token->val == '+') {
+                printf("  add rax, %ld\n", get_number(token->next));
+            } else if (token->val == '-') {
+                printf("  sub rax, %ld\n", get_number(token->next));
             }
         }
-        tok = tok->next;
+        token = token->next;
     }
     printf("  ret\n");
     return 0;
