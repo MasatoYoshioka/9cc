@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 typedef enum {
     TK_RESERVED, // punctuators
@@ -41,6 +42,13 @@ static Token *new_token(TokenKind kind, Token *cur, char *str) {
     tok->str = str;
     cur->next = tok;
     return tok;
+}
+
+bool consume(char op) {
+    if (token->kind != TK_RESERVED || token->str[0] != op)
+        return false;
+    token = token->next;
+    return true;
 }
 
 static Token *tokenize(char *p) {
@@ -84,14 +92,12 @@ int main(int argc, char **argv) {
     printf("main:\n");
     printf("  mov rax, %ld\n", get_number(token));
 
-
     while(token->kind != TK_EOF) {
-        if (token->kind == TK_RESERVED) {
-            if (token->val == '+') {
-                printf("  add rax, %ld\n", get_number(token->next));
-            } else if (token->val == '-') {
-                printf("  sub rax, %ld\n", get_number(token->next));
-            }
+        if (consume('+')) {
+            printf("  add rax, %ld\n", get_number(token));
+        }
+        if (consume('-')) {
+            printf("  sub rax, %ld\n", get_number(token));
         }
         token = token->next;
     }
