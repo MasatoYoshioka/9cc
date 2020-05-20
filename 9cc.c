@@ -30,9 +30,22 @@ void error(char *fmt, ...) {
     exit(1);
 }
 
+void error_at(char *loc, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+
+    int pos = loc - user_input;
+    printf("loc:%s user_input:%s pos:%d\n", loc, user_input, pos);
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s^ ", pos, "");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
 static long expect_number() {
     if (token->kind != TK_NUM)
-        error("数値ではありません");
+        error_at(token->str, "数値ではありません");
     long val = token->val;
     token = token->next;
     return val;
@@ -76,7 +89,7 @@ static Token *tokenize() {
             continue;
         }
 
-        error("予期しない文字列です");
+        error_at(p, "予期しない文字列です");
     }
     new_token(TK_EOF, cur, 0);
     return head.next;
