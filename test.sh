@@ -17,6 +17,7 @@ assert() {
     fi
 }
 
+assert 3 '1 + 1 + 1'
 assert 21 '5 + 20 - 4'
 assert 0 0
 assert 43 43
