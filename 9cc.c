@@ -20,6 +20,7 @@ struct Token {
 };
 
 Token *token;
+char *user_input;
 
 void error(char *fmt, ...) {
     va_list ap;
@@ -52,7 +53,8 @@ bool consume(char op) {
     return true;
 }
 
-static Token *tokenize(char *p) {
+static Token *tokenize() {
+    char *p = user_input;
     Token head;
     head.next = NULL;
     Token *cur = &head;
@@ -85,8 +87,8 @@ int main(int argc, char **argv) {
         error("引数の個数が正しくありません");
     }
 
-    char *p = argv[1];
-    token = tokenize(p);
+    user_input = argv[1];
+    token = tokenize();
 
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
