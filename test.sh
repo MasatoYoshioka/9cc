@@ -22,6 +22,9 @@ assert() {
     fi
 }
 
+assert 15 '5*(9-6)'
+assert 4 '(3+5)/2'
+assert 10 '5 * (1 + 1)'
 assert 5 '10 * 2 / 4'
 assert 4 '9 - 10 / 2'
 assert 10 '1 + 3 * 3'

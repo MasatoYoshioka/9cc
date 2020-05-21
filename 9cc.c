@@ -66,6 +66,12 @@ bool consume(char op) {
     return true;
 }
 
+void expect(char op) {
+    if (token->kind != TK_RESERVED || token->str[0] != op)
+        error_at(token->str, "'%c'ではありません", op);
+    token = token->next;
+}
+
 typedef enum {
     ND_ADD,
     ND_SUB,
@@ -100,6 +106,7 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
 }
 
 static Node *mul();
+static Node *primary();
 
 // expr = mul ("+" mul | "-" mul)*
 static Node *expr() {
@@ -119,22 +126,32 @@ static Node *expr() {
     return node;
 }
 
-// mul = num ("*" num | "/" num)*
+// mul = primary ("*" primary | "/" primary)*
 static Node *mul() {
-    Node *node = new_num();
+    Node *node = primary();
 
     for(;;) {
         if (consume('*')) {
-            node = new_binary(ND_MUL, node, new_num());
+            node = new_binary(ND_MUL, node, primary());
             continue;
         }
         if (consume('/')) {
-            node = new_binary(ND_DIV, node, new_num());
+            node = new_binary(ND_DIV, node, primary());
             continue;
         }
         break;
     }
     return node;
+}
+
+// primary = num | "(" expr ")"
+static Node *primary() {
+    if (consume('(')) {
+        Node *node = expr();
+        expect(')');
+        return node;
+    }
+    return new_num();
 }
 
 static Token *tokenize() {
@@ -153,7 +170,7 @@ static Token *tokenize() {
             cur->val = strtol(p, &p, 10);
             continue;
         }
-        if (strchr("+-*/", *p)) {
+        if (strchr("+-*/()", *p)) {
             cur = new_token(TK_RESERVED, cur, p);
             cur->val = *p;
             p++;
