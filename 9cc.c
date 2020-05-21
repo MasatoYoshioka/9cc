@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <string.h>
 
 typedef enum {
     TK_RESERVED, // punctuators
@@ -68,6 +69,8 @@ bool consume(char op) {
 typedef enum {
     ND_ADD,
     ND_SUB,
+    ND_MUL,
+    ND_DIV,
     ND_NUM,
 } NodeKind;
 
@@ -96,17 +99,37 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
-// expr = num ("+" num | "-" num)*
+static Node *mul();
+
+// expr = mul ("+" mul | "-" mul)*
 static Node *expr() {
-    Node *node = new_num();
+    Node *node = mul();
 
     for(;;) {
         if (consume('+')) {
-            node = new_binary(ND_ADD, node, new_num());
+            node = new_binary(ND_ADD, node, mul());
             continue;
         }
         if (consume('-')) {
-            node = new_binary(ND_SUB, node, new_num());
+            node = new_binary(ND_SUB, node, mul());
+            continue;
+        }
+        break;
+    }
+    return node;
+}
+
+// mul = num ("*" num | "/" num)*
+static Node *mul() {
+    Node *node = new_num();
+
+    for(;;) {
+        if (consume('*')) {
+            node = new_binary(ND_MUL, node, new_num());
+            continue;
+        }
+        if (consume('/')) {
+            node = new_binary(ND_DIV, node, new_num());
             continue;
         }
         break;
@@ -130,7 +153,7 @@ static Token *tokenize() {
             cur->val = strtol(p, &p, 10);
             continue;
         }
-        if (*p == '+' || *p == '-') {
+        if (strchr("+-*/", *p)) {
             cur = new_token(TK_RESERVED, cur, p);
             cur->val = *p;
             p++;
@@ -161,6 +184,13 @@ static void gen(Node *node) {
             break;
         case ND_SUB:
             printf("  sub rax, rdi\n");
+            break;
+        case ND_MUL:
+            printf("  imul rax, rdi\n");
+            break;
+        case ND_DIV:
+            printf("  cqo\n");
+            printf("  idiv rdi\n");
             break;
     }
     printf("  push rax\n");

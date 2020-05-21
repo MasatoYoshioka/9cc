@@ -22,6 +22,14 @@ assert() {
     fi
 }
 
+assert 5 '10 * 2 / 4'
+assert 4 '9 - 10 / 2'
+assert 10 '1 + 3 * 3'
+assert 2 '8 / 2 / 2'
+assert 8 '2 * 2 * 2'
+assert 1 ' 1 /1 '
+assert 4 '8 / 2'
+assert 49 '7 * 7'
 assert 3 '1 + 1 + 1'
 assert 21 '5 + 20 - 4'
 assert 0 0
