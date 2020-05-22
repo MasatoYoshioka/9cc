@@ -90,10 +90,10 @@ struct Node {
     long val;  // 値
 };
 
-static Node *new_num() {
+static Node *new_num(long num) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_NUM;
-    node->val = expect_number(); 
+    node->val = num;
     return node;
 }
 
@@ -106,6 +106,7 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
 }
 
 static Node *mul();
+static Node *unary();
 static Node *primary();
 
 // expr = mul ("+" mul | "-" mul)*
@@ -126,22 +127,31 @@ static Node *expr() {
     return node;
 }
 
-// mul = primary ("*" primary | "/" primary)*
+// mul = unary ("*" unary | "/" unary)*
 static Node *mul() {
-    Node *node = primary();
+    Node *node = unary();
 
     for(;;) {
         if (consume('*')) {
-            node = new_binary(ND_MUL, node, primary());
+            node = new_binary(ND_MUL, node, unary());
             continue;
         }
         if (consume('/')) {
-            node = new_binary(ND_DIV, node, primary());
+            node = new_binary(ND_DIV, node, unary());
             continue;
         }
         break;
     }
     return node;
+}
+
+// unary = ("+" unary | "-" unary)? primary
+static Node *unary() {
+    if (consume('+'))
+        return unary();
+    if (consume('-'))
+        return new_binary(ND_SUB, new_num(0), unary());
+    return primary();
 }
 
 // primary = num | "(" expr ")"
@@ -151,7 +161,7 @@ static Node *primary() {
         expect(')');
         return node;
     }
-    return new_num();
+    return new_num(expect_number());
 }
 
 static Token *tokenize() {
