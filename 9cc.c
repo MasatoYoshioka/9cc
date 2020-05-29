@@ -111,12 +111,21 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
+static Node *add();
 static Node *mul();
 static Node *unary();
 static Node *primary();
 
-// expr = mul ("+" mul | "-" mul)*
+// expr = add
+// add = mul ("+" mul | "-" mul)*
+// mul = unary ("*" unary | "/" unary)*
+// unary = ("+" unary | "-" unary)? primary
+// primary = num | "(" expr ")"
 static Node *expr() {
+    return add();
+}
+
+static Node *add() {
     Node *node = mul();
 
     for(;;) {
