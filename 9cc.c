@@ -18,6 +18,7 @@ struct Token {
     Token *next;
     int val;
     char *str;
+    int len;
 };
 
 Token *token;
@@ -51,23 +52,28 @@ static long expect_number() {
     return val;
 }
 
-static Token *new_token(TokenKind kind, Token *cur, char *str) {
+static Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
     Token *tok = calloc(1, sizeof(Token));
     tok->kind = kind;
     tok->str = str;
+    tok->len = len;
     cur->next = tok;
     return tok;
 }
 
-bool consume(char op) {
-    if (token->kind != TK_RESERVED || token->str[0] != op)
+bool consume(char *op) {
+    if (token->kind != TK_RESERVED || 
+        strlen(op) != token->len ||
+        memcmp(token->str, op, token->len))
         return false;
     token = token->next;
     return true;
 }
 
-void expect(char op) {
-    if (token->kind != TK_RESERVED || token->str[0] != op)
+void expect(char *op) {
+    if (token->kind != TK_RESERVED || 
+        strlen(op) != token->len ||
+        memcmp(token->str, op, token->len))
         error_at(token->str, "'%c'ではありません", op);
     token = token->next;
 }
@@ -114,11 +120,11 @@ static Node *expr() {
     Node *node = mul();
 
     for(;;) {
-        if (consume('+')) {
+        if (consume("+")) {
             node = new_binary(ND_ADD, node, mul());
             continue;
         }
-        if (consume('-')) {
+        if (consume("-")) {
             node = new_binary(ND_SUB, node, mul());
             continue;
         }
@@ -132,11 +138,11 @@ static Node *mul() {
     Node *node = unary();
 
     for(;;) {
-        if (consume('*')) {
+        if (consume("*")) {
             node = new_binary(ND_MUL, node, unary());
             continue;
         }
-        if (consume('/')) {
+        if (consume("/")) {
             node = new_binary(ND_DIV, node, unary());
             continue;
         }
@@ -147,18 +153,18 @@ static Node *mul() {
 
 // unary = ("+" unary | "-" unary)? primary
 static Node *unary() {
-    if (consume('+'))
+    if (consume("+"))
         return unary();
-    if (consume('-'))
+    if (consume("-"))
         return new_binary(ND_SUB, new_num(0), unary());
     return primary();
 }
 
 // primary = num | "(" expr ")"
 static Node *primary() {
-    if (consume('(')) {
+    if (consume("(")) {
         Node *node = expr();
-        expect(')');
+        expect(")");
         return node;
     }
     return new_num(expect_number());
@@ -176,12 +182,14 @@ static Token *tokenize() {
             continue;
         }
         if (isdigit(*p)) {
-            cur = new_token(TK_NUM, cur, p);
+            char *q = p;
+            cur = new_token(TK_NUM, cur, p, 0);
             cur->val = strtol(p, &p, 10);
+            cur->len = p - q;
             continue;
         }
         if (strchr("+-*/()", *p)) {
-            cur = new_token(TK_RESERVED, cur, p);
+            cur = new_token(TK_RESERVED, cur, p, 1);
             cur->val = *p;
             p++;
             continue;
@@ -189,7 +197,7 @@ static Token *tokenize() {
 
         error_at(p, "予期しない文字列です");
     }
-    new_token(TK_EOF, cur, 0);
+    new_token(TK_EOF, cur, 0, 0);
     return head.next;
 }
 
