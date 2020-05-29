@@ -22,6 +22,11 @@ assert() {
     fi
 }
 
+assert 1 '1==1'
+assert 0 '1==0'
+assert 1 '1!=0'
+assert 0 '1!=1'
+
 assert 10 '-10+20'
 assert 10 '- -10'
 assert 10 '- - +10'

@@ -78,12 +78,18 @@ void expect(char *op) {
     token = token->next;
 }
 
+bool startswith(char *p, char *q) {
+    return memcmp(p, q, strlen(q)) == 0;
+}
+
 typedef enum {
     ND_ADD,
     ND_SUB,
     ND_MUL,
     ND_DIV,
     ND_NUM,
+    ND_EQ, // ==
+    ND_NE, // !=
 } NodeKind;
 
 // Ast Node
@@ -111,18 +117,38 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
+static Node *equality();
 static Node *add();
 static Node *mul();
 static Node *unary();
 static Node *primary();
 
 // expr = add
+// equality = add ("==" add| "!=" add)*
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" unary | "-" unary)? primary
 // primary = num | "(" expr ")"
 static Node *expr() {
-    return add();
+    return equality();
+}
+
+// equality = add ("==" add| "!=! add)*
+static Node *equality() {
+    Node *node = add();
+
+    for (;;) {
+        if (consume("==")) {
+            node = new_binary(ND_EQ, node, add());
+            continue;
+        }
+        if (consume("!=")) {
+            node = new_binary(ND_NE, node, add());
+            continue;
+        }
+        break;
+    }
+    return node;
 }
 
 static Node *add() {
@@ -197,6 +223,11 @@ static Token *tokenize() {
             cur->len = p - q;
             continue;
         }
+        if (startswith(p, "==") || startswith(p, "!=")) {
+            cur = new_token(TK_RESERVED, cur, p, 2);
+            p += 2;
+            continue;
+        }
         if (strchr("+-*/()", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             cur->val = *p;
@@ -235,6 +266,16 @@ static void gen(Node *node) {
         case ND_DIV:
             printf("  cqo\n");
             printf("  idiv rdi\n");
+            break;
+        case ND_EQ:
+            printf("  cmp rax, rdi\n");
+            printf("  sete al\n");
+            printf("  movzb rax, al\n");
+            break;
+        case ND_NE:
+            printf("  cmp rax, rdi\n");
+            printf("  setne al\n");
+            printf("  movzb rax, al\n");
             break;
     }
     printf("  push rax\n");
