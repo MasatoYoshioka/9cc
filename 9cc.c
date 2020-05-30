@@ -90,6 +90,7 @@ typedef enum {
     ND_NUM,
     ND_EQ, // ==
     ND_NE, // !=
+    ND_LT, // <
     ND_LE, // <=
 } NodeKind;
 
@@ -127,7 +128,7 @@ static Node *primary();
 
 // expr = add
 // equality = relational ("==" relational| "!=" relational)*
-// relational = add ("<=" add | ">=" add)*
+// relational = add ("<=" add | "<" add | ">=" add | ">" add)*
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" unary | "-" unary)? primary
@@ -136,7 +137,7 @@ static Node *expr() {
     return equality();
 }
 
-// equality = relational ("==" add| "!=! add)*
+// equality = relational ("==" relational| "!=! relational)*
 static Node *equality() {
     Node *node = relational();
 
@@ -154,6 +155,7 @@ static Node *equality() {
     return node;
 }
 
+// relational = add ("<=" add | "<" add | ">=" add | ">" add)*
 static Node *relational() {
     Node *node = add();
 
@@ -162,8 +164,16 @@ static Node *relational() {
             node = new_binary(ND_LE, node, add());
             continue;
         }
+        if (consume("<")) {
+            node = new_binary(ND_LT, node, add());
+            continue;
+        }
         if (consume(">=")) {
             node = new_binary(ND_LE, add(), node);
+            continue;
+        }
+        if (consume(">")) {
+            node = new_binary(ND_LT, add(), node);
             continue;
         }
         break;
@@ -248,7 +258,7 @@ static Token *tokenize() {
             p += 2;
             continue;
         }
-        if (strchr("+-*/()", *p)) {
+        if (strchr("+-*/()<>", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             cur->val = *p;
             p++;
@@ -302,6 +312,12 @@ static void gen(Node *node) {
             printf("  setle al\n");
             printf("  movzb rax, al\n");
             break;
+        case ND_LT:
+            printf("  cmp rax, rdi\n");
+            printf("  setl al\n");
+            printf("  movzb rax, al\n");
+            break;
+
     }
     printf("  push rax\n");
 }
