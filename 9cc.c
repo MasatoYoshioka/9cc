@@ -90,6 +90,7 @@ typedef enum {
     ND_NUM,
     ND_EQ, // ==
     ND_NE, // !=
+    ND_LE, // <=
 } NodeKind;
 
 // Ast Node
@@ -118,13 +119,15 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
 }
 
 static Node *equality();
+static Node *relational();
 static Node *add();
 static Node *mul();
 static Node *unary();
 static Node *primary();
 
 // expr = add
-// equality = add ("==" add| "!=" add)*
+// equality = relational ("==" relational| "!=" relational)*
+// relational = add ("<=" add | ">=" add)*
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" unary | "-" unary)? primary
@@ -133,17 +136,34 @@ static Node *expr() {
     return equality();
 }
 
-// equality = add ("==" add| "!=! add)*
+// equality = relational ("==" add| "!=! add)*
 static Node *equality() {
-    Node *node = add();
+    Node *node = relational();
 
     for (;;) {
         if (consume("==")) {
-            node = new_binary(ND_EQ, node, add());
+            node = new_binary(ND_EQ, node, relational());
             continue;
         }
         if (consume("!=")) {
-            node = new_binary(ND_NE, node, add());
+            node = new_binary(ND_NE, node, relational());
+            continue;
+        }
+        break;
+    }
+    return node;
+}
+
+static Node *relational() {
+    Node *node = add();
+
+    for (;;) {
+        if (consume("<=")) {
+            node = new_binary(ND_LE, node, add());
+            continue;
+        }
+        if (consume(">=")) {
+            node = new_binary(ND_LE, add(), node);
             continue;
         }
         break;
@@ -223,7 +243,7 @@ static Token *tokenize() {
             cur->len = p - q;
             continue;
         }
-        if (startswith(p, "==") || startswith(p, "!=")) {
+        if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")) {
             cur = new_token(TK_RESERVED, cur, p, 2);
             p += 2;
             continue;
@@ -275,6 +295,11 @@ static void gen(Node *node) {
         case ND_NE:
             printf("  cmp rax, rdi\n");
             printf("  setne al\n");
+            printf("  movzb rax, al\n");
+            break;
+        case ND_LE:
+            printf("  cmp rax, rdi\n");
+            printf("  setle al\n");
             printf("  movzb rax, al\n");
             break;
     }
