@@ -4,83 +4,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
-
-typedef enum {
-    TK_RESERVED, // punctuators
-    TK_NUM, // number
-    TK_EOF, // end of file marker
-} TokenKind;
-
-typedef struct Token Token;
-
-struct Token {
-    TokenKind kind;
-    Token *next;
-    int val;
-    char *str;
-    int len;
-};
-
-Token *token;
-char *user_input;
-
-void error(char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    exit(1);
-}
-
-void error_at(char *loc, char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-
-    int pos = loc - user_input;
-    fprintf(stderr, "%s\n", user_input);
-    fprintf(stderr, "%*s^ ", pos, "");
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    exit(1);
-}
-
-static long expect_number() {
-    if (token->kind != TK_NUM)
-        error_at(token->str, "数値ではありません");
-    long val = token->val;
-    token = token->next;
-    return val;
-}
-
-static Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
-    Token *tok = calloc(1, sizeof(Token));
-    tok->kind = kind;
-    tok->str = str;
-    tok->len = len;
-    cur->next = tok;
-    return tok;
-}
-
-bool consume(char *op) {
-    if (token->kind != TK_RESERVED || 
-        strlen(op) != token->len ||
-        memcmp(token->str, op, token->len))
-        return false;
-    token = token->next;
-    return true;
-}
-
-void expect(char *op) {
-    if (token->kind != TK_RESERVED || 
-        strlen(op) != token->len ||
-        memcmp(token->str, op, token->len))
-        error_at(token->str, "'%c'ではありません", op);
-    token = token->next;
-}
-
-bool startswith(char *p, char *q) {
-    return memcmp(p, q, strlen(q)) == 0;
-}
+#include "9cc.h"
 
 typedef enum {
     ND_ADD,
@@ -235,41 +159,6 @@ static Node *primary() {
     return new_num(expect_number());
 }
 
-static Token *tokenize() {
-    char *p = user_input;
-    Token head;
-    head.next = NULL;
-    Token *cur = &head;
-
-    while (*p) {
-        if (isspace(*p)) {
-            p++;
-            continue;
-        }
-        if (isdigit(*p)) {
-            char *q = p;
-            cur = new_token(TK_NUM, cur, p, 0);
-            cur->val = strtol(p, &p, 10);
-            cur->len = p - q;
-            continue;
-        }
-        if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")) {
-            cur = new_token(TK_RESERVED, cur, p, 2);
-            p += 2;
-            continue;
-        }
-        if (strchr("+-*/()<>", *p)) {
-            cur = new_token(TK_RESERVED, cur, p, 1);
-            cur->val = *p;
-            p++;
-            continue;
-        }
-
-        error_at(p, "予期しない文字列です");
-    }
-    new_token(TK_EOF, cur, 0, 0);
-    return head.next;
-}
 
 static void gen(Node *node) {
     if (node->kind == ND_NUM) {
@@ -327,8 +216,7 @@ int main(int argc, char **argv) {
         error("引数の個数が正しくありません");
     }
 
-    user_input = argv[1];
-    token = tokenize();
+    token = tokenize(argv[1]);
     Node *node = expr();
 
     printf(".intel_syntax noprefix\n");
