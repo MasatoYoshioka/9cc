@@ -26,6 +26,7 @@ void expect(char *op);
 
 extern Token *token;
 
+// parser
 typedef enum {
     ND_ADD,
     ND_SUB,
@@ -49,3 +50,6 @@ struct Node {
 };
 
 Node *expr();
+
+// codegen
+void gen(Node *node);
