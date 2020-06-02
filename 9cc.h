@@ -52,4 +52,4 @@ struct Node {
 Node *expr();
 
 // codegen
-void gen(Node *node);
+void codegen(Node *node);

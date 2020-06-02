@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "9cc.h"
 
 int main(int argc, char **argv) {
@@ -9,13 +8,7 @@ int main(int argc, char **argv) {
     token = tokenize(argv[1]);
     Node *node = expr();
 
-    printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
+    codegen(node);
 
-    gen(node);
-
-    printf("  pop rax\n");
-    printf("  ret\n");
     return 0;
 }
