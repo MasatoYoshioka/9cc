@@ -69,6 +69,10 @@ bool startswith(char *p, char *q) {
     return memcmp(p, q, strlen(q)) == 0;
 }
 
+bool at_eof() {
+    return token->kind == TK_EOF;
+}
+
 Token *tokenize(char *p) {
     user_input = p;
     Token head;
@@ -92,7 +96,7 @@ Token *tokenize(char *p) {
             p += 2;
             continue;
         }
-        if (strchr("+-*/()<>", *p)) {
+        if (strchr("+-*/()<>;", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             cur->val = *p;
             p++;

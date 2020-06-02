@@ -23,6 +23,7 @@ Token *tokenize(char *input);
 bool consume(char *op);
 long expect_number();
 void expect(char *op);
+bool at_eof();
 
 extern Token *token;
 
@@ -46,10 +47,11 @@ struct Node {
     NodeKind kind; //種別
     Node *lhs; // 左辺
     Node *rhs; // 右辺
+    Node *next; // 次のNode
     long val;  // 値
 };
 
-Node *expr();
+Node *program();
 
 // codegen
 void codegen(Node *node);

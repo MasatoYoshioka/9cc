@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
     }
 
     token = tokenize(argv[1]);
-    Node *node = expr();
+    Node *node = program();
 
     codegen(node);
 
