@@ -25,3 +25,27 @@ long expect_number();
 void expect(char *op);
 
 extern Token *token;
+
+typedef enum {
+    ND_ADD,
+    ND_SUB,
+    ND_MUL,
+    ND_DIV,
+    ND_NUM,
+    ND_EQ, // ==
+    ND_NE, // !=
+    ND_LT, // <
+    ND_LE, // <=
+} NodeKind;
+
+// Ast Node
+typedef struct Node Node;
+
+struct Node {
+    NodeKind kind; //種別
+    Node *lhs; // 左辺
+    Node *rhs; // 右辺
+    long val;  // 値
+};
+
+Node *expr();
