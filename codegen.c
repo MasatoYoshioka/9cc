@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "9cc.h"
 
-void gen_val(Node *node) {
+static void gen_val(Node *node) {
     if (node->kind != ND_VAR)
         error("代入の左辺値が変数ではありません");
     int offset = (node->name - 'a' + 1) * 8;
@@ -10,24 +10,32 @@ void gen_val(Node *node) {
     printf("  push rax\n");
 }
 
-void gen(Node *node) {
+static void load() {
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
+}
+
+static void store() {
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    printf("  mov [rax], rdi\n");
+    printf("  push rdi\n");
+}
+
+static void gen(Node *node) {
     switch(node->kind) {
         case ND_NUM:
             printf("  push %ld\n", node->val);
             return;
         case ND_VAR:
             gen_val(node);
-            printf("  pop rax\n");
-            printf("  mov rax, [rax]\n");
-            printf("  push rax\n");
+            load();
             return;
         case ND_ASSIGN:
             gen_val(node->lhs);
             gen(node->rhs);
-            printf("  pop rdi\n");
-            printf("  pop rax\n");
-            printf("  mov [rax], rdi\n");
-            printf("  push rdi\n");
+            store();
             return;
     }
 
