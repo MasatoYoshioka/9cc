@@ -38,6 +38,14 @@ bool consume(char *op) {
     return true;
 }
 
+Token *consume_ident() {
+    if (token->kind != TK_INDENT)
+        return NULL;
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 long expect_number() {
     if (token->kind != TK_NUM)
         error_at(token->str, "数値ではありません");
@@ -96,10 +104,15 @@ Token *tokenize(char *p) {
             p += 2;
             continue;
         }
-        if (strchr("+-*/()<>;", *p)) {
+        if (strchr("+-*/()<>;=", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             cur->val = *p;
             p++;
+            continue;
+        }
+
+        if ('a' <= *p && *p <= 'z') {
+            cur = new_token(TK_INDENT, cur, p++, 1);
             continue;
         }
 

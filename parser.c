@@ -1,15 +1,27 @@
 #include <stdlib.h>
 #include "9cc.h"
 
-static Node *new_num(long num) {
+static Node *new_node(NodeKind kind)
+{
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_NUM;
+    node->kind = kind;
+    return node;
+}
+
+static Node *new_num(long num) {
+    Node *node = new_node(ND_NUM);
     node->val = num;
     return node;
 }
 
+static Node *new_var_node(char name) {
+    Node *node = new_node(ND_VAR);
+    node->name = name;
+    return node;
+}
+
 static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
-    Node *node = calloc(1, sizeof(Node));
+    Node *node = new_node(kind);
     node->kind = kind;
     node->lhs = lhs;
     node->rhs = rhs;
@@ -18,6 +30,7 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
 
 static Node *stmt();
 static Node *expr();
+static Node *assign();
 static Node *equality();
 static Node *relational();
 static Node *add();
@@ -25,13 +38,16 @@ static Node *mul();
 static Node *unary();
 static Node *primary();
 
-// expr = add
+// program = stmt
+// stmt = expr ";"
+// expr = assign
+// assign = equality ("=" assign)?
 // equality = relational ("==" relational| "!=" relational)*
 // relational = add ("<=" add | "<" add | ">=" add | ">" add)*
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" unary | "-" unary)? primary
-// primary = num | "(" expr ")"
+// primary = num | indent | "(" expr ")"
 
 Node *program() {
     Node head = {};
@@ -51,9 +67,18 @@ static Node *stmt() {
     return node;
 }
 
-// equality
+// assign
 static Node *expr() {
-    return equality();
+    return assign();
+}
+
+// equality ("=" assign)?
+static Node *assign() {
+    Node *node = equality();
+
+    if (consume("="))
+        node = new_binary(ND_ASSIGN, node, assign());
+    return node;
 }
 
 // equality = relational ("==" relational| "!=! relational)*
@@ -144,13 +169,19 @@ static Node *unary() {
     return primary();
 }
 
-// primary = num | "(" expr ")"
+// primary = num | ident | "(" expr ")"
 static Node *primary() {
     if (consume("(")) {
         Node *node = expr();
         expect(")");
         return node;
     }
+
+    Token *t = consume_ident();
+
+    if (t) {
+        return new_var_node(*t->str);
+    }
+
     return new_num(expect_number());
 }
-

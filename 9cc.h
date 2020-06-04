@@ -2,6 +2,7 @@
 // tokenize.c
 typedef enum {
     TK_RESERVED, // punctuators
+    TK_INDENT, // 識別子
     TK_NUM, // number
     TK_EOF, // end of file marker
 } TokenKind;
@@ -21,6 +22,7 @@ void error_at(char *loc, char *fmt, ...);
 
 Token *tokenize(char *input);
 bool consume(char *op);
+Token *consume_ident();
 long expect_number();
 void expect(char *op);
 bool at_eof();
@@ -38,6 +40,8 @@ typedef enum {
     ND_NE, // !=
     ND_LT, // <
     ND_LE, // <=
+    ND_ASSIGN, // =
+    ND_VAR, // Variable
 } NodeKind;
 
 // Ast Node
@@ -48,6 +52,7 @@ struct Node {
     Node *lhs; // 左辺
     Node *rhs; // 右辺
     Node *next; // 次のNode
+    char name; // ND_VARの時に使う 変数の名前
     long val;  // 値
 };
 

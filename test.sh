@@ -22,6 +22,9 @@ assert() {
     fi
 }
 
+assert 3 'a=3; a;'
+assert 8 'a=3; z=5; a+z;'
+assert 6 'a=b=3; a+b;'
 assert 2 '1;2;'
 assert 1 '0<=1;'
 assert 1 '1<=1;'
