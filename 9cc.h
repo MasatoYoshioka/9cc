@@ -29,6 +29,13 @@ bool at_eof();
 
 extern Token *token;
 
+typedef struct Var Var;
+
+struct Var {
+    char name;
+    int offset;
+};
+
 // parser
 typedef enum {
     ND_ADD,
@@ -52,7 +59,7 @@ struct Node {
     Node *lhs; // 左辺
     Node *rhs; // 右辺
     Node *next; // 次のNode
-    char name; // ND_VARの時に使う 変数の名前
+    Var *var; // ND_VARの時に使う 変数の名前
     long val;  // 値
 };
 

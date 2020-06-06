@@ -4,9 +4,8 @@
 static void gen_val(Node *node) {
     if (node->kind != ND_VAR)
         error("代入の左辺値が変数ではありません");
-    int offset = (node->name - 'a' + 1) * 8;
     printf("  mov rax, rbp\n");
-    printf("  sub rax, %d\n", offset);
+    printf("  sub rax, %d\n", node->var->offset);
     printf("  push rax\n");
 }
 

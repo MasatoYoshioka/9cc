@@ -1,6 +1,13 @@
 #include <stdlib.h>
 #include "9cc.h"
 
+static Var *new_var(char name) {
+    Var *var = calloc(1, sizeof(Var));
+    var->name = name;
+    var->offset = (name - 'a' + 1) * 8;
+    return var;
+}
+
 static Node *new_node(NodeKind kind)
 {
     Node *node = calloc(1, sizeof(Node));
@@ -16,7 +23,7 @@ static Node *new_num(long num) {
 
 static Node *new_var_node(char name) {
     Node *node = new_node(ND_VAR);
-    node->name = name;
+    node->var = new_var(name);
     return node;
 }
 
