@@ -32,7 +32,8 @@ extern Token *token;
 typedef struct Var Var;
 
 struct Var {
-    char name;
+    Var *next;
+    char *name;
     int offset;
 };
 
@@ -63,7 +64,15 @@ struct Node {
     long val;  // 値
 };
 
-Node *program();
+typedef struct Function Function;
+
+struct Function {
+    Node *node;
+    Var *locals;
+    int stack_size;
+};
+
+Function *program();
 
 // codegen
-void codegen(Node *node);
+void codegen(Function *prog);

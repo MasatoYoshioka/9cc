@@ -1,10 +1,21 @@
+#include <string.h>
 #include <stdlib.h>
 #include "9cc.h"
 
-static Var *new_var(char name) {
+Var *locals;
+
+static Var *find_var(Token *tok) {
+    for (Var *var = locals; var; var = var->next) 
+        if (!memcmp(tok->str, var->name, tok->len))
+            return var;
+    return NULL;
+}
+
+static Var *new_var(char *name) {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
-    var->offset = (name - 'a' + 1) * 8;
+    var->next = locals;
+    locals = var;
     return var;
 }
 
@@ -21,9 +32,9 @@ static Node *new_num(long num) {
     return node;
 }
 
-static Node *new_var_node(char name) {
+static Node *new_var_node(Var *var) {
     Node *node = new_node(ND_VAR);
-    node->var = new_var(name);
+    node->var = var;
     return node;
 }
 
@@ -56,7 +67,8 @@ static Node *primary();
 // unary = ("+" unary | "-" unary)? primary
 // primary = num | indent | "(" expr ")"
 
-Node *program() {
+Function *program() {
+    locals = NULL;
     Node head = {};
     Node *cur = &head;
 
@@ -64,7 +76,11 @@ Node *program() {
         cur->next = stmt();
         cur = cur->next;
     }
-    return head.next;
+
+    Function *prog = calloc(1, sizeof(Function));
+    prog->node = head.next;
+    prog->locals = locals;
+    return prog;
 }
 
 // stmt = expr ";"
@@ -187,7 +203,11 @@ static Node *primary() {
     Token *t = consume_ident();
 
     if (t) {
-        return new_var_node(*t->str);
+        
+        Var *var = find_var(t);
+        if(!var) 
+            var = new_var(t->str);
+        return new_var_node(var);
     }
 
     return new_num(expect_number());

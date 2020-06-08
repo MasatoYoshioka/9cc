@@ -22,6 +22,12 @@ assert() {
     fi
 }
 
+assert 10 'hoge=5; fuga=2; hoge * fuga;';
+assert 25 'hoge=5; fuga=2; hoge * hoge;';
+assert 10 'hoge=5; hoge=10;';
+assert 3 'hoge=3; hoge;'
+assert 10 'fuga=5; fuga * 2;';
+assert 7 'fuga=5; fuga + 2;';
 assert 3 'a=3; a;'
 assert 8 'a=3; z=5; a+z;'
 assert 6 'a=b=3; a+b;'

@@ -111,6 +111,14 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        if (isalnum(*p)) {
+            char *q = p++;
+            while(isalnum(*p))
+                p++;
+            cur = new_token(TK_INDENT, cur, q, p - q);
+            continue;
+        }
+
         if ('a' <= *p && *p <= 'z') {
             cur = new_token(TK_INDENT, cur, p++, 1);
             continue;
