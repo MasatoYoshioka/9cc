@@ -1,4 +1,12 @@
+#define _GNU_SOURCE
+#include <string.h>
+#include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <stdarg.h>
+
 // tokenize.c
 typedef enum {
     TK_RESERVED, // punctuators

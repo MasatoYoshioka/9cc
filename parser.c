@@ -1,12 +1,11 @@
-#include <string.h>
-#include <stdlib.h>
 #include "9cc.h"
 
 Var *locals;
 
 static Var *find_var(Token *tok) {
     for (Var *var = locals; var; var = var->next) 
-        if (!memcmp(tok->str, var->name, tok->len))
+        if (strlen(var->name) == tok->len 
+                && !memcmp(tok->str, var->name, tok->len))
             return var;
     return NULL;
 }
@@ -206,7 +205,7 @@ static Node *primary() {
         
         Var *var = find_var(t);
         if(!var) 
-            var = new_var(t->str);
+            var = new_var(strndup(t->str, t->len));
         return new_var_node(var);
     }
 
