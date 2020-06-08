@@ -113,11 +113,6 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if ('a' <= *p && *p <= 'z') {
-            cur = new_token(TK_INDENT, cur, p++, 1);
-            continue;
-        }
-
         error_at(p, "予期しない文字列です");
     }
     new_token(TK_EOF, cur, p, 0);
