@@ -31,6 +31,13 @@ static Node *new_num(long num) {
     return node;
 }
 
+static Node *new_unary(NodeKind kind, Node *lhs) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = kind;
+    node->lhs = lhs;
+    return node;
+}
+
 static Node *new_var_node(Var *var) {
     Node *node = new_node(ND_VAR);
     node->var = var;
@@ -57,6 +64,7 @@ static Node *primary();
 
 // program = stmt
 // stmt = expr ";"
+//         | "return" expr ";"
 // expr = assign
 // assign = equality ("=" assign)?
 // equality = relational ("==" relational| "!=" relational)*
@@ -83,8 +91,14 @@ Function *program() {
 }
 
 // stmt = expr ";"
+//         | "return" expr ";"
 static Node *stmt() {
-    Node *node = expr();
+    Node *node;
+    if (consume("return")) {
+        node = new_unary(ND_RETURN, expr());
+    } else {
+        node = expr();
+    }
     expect(";");
     return node;
 }

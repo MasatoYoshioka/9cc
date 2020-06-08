@@ -58,6 +58,7 @@ typedef enum {
     ND_LE, // <=
     ND_ASSIGN, // =
     ND_VAR, // Variable
+    ND_RETURN, // Return
 } NodeKind;
 
 // Ast Node

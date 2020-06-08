@@ -22,6 +22,9 @@ assert() {
     fi
 }
 
+assert 10 'returnhoge = 10; return returnhoge;';
+assert 10 'return 10;'
+assert 10 'return 10;return 20;'
 assert 10 'hoge=5; fuga=2; hoge * fuga;';
 assert 25 'hoge=5; fuga=2; hoge * hoge;';
 assert 10 'hoge=5; hoge=10;';

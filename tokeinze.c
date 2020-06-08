@@ -105,6 +105,12 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        if (startswith(p, "return") && !isalnum(p[6])) {
+            cur = new_token(TK_RESERVED, cur, p, 6);
+            p += 6;
+            continue;
+        } 
+
         if (isalnum(*p)) {
             char *q = p++;
             while(isalnum(*p))
