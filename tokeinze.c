@@ -75,6 +75,19 @@ bool at_eof() {
     return token->kind == TK_EOF;
 }
 
+static char *starts_with_reserved(char *p) {
+    static char *kw[] = {"return"};
+
+    for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++) {
+        int len = strlen(kw[i]);
+        if (startswith(p, kw[i]) && !isalnum(p[len])) {
+            return kw[i];
+        }
+    }
+
+    return NULL;
+}
+
 Token *tokenize(char *p) {
     user_input = p;
     Token head;
@@ -105,11 +118,14 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if (startswith(p, "return") && !isalnum(p[6])) {
-            cur = new_token(TK_RESERVED, cur, p, 6);
-            p += 6;
+        char *kw = starts_with_reserved(p);
+        if (kw) {
+            int len = strlen(kw);
+            cur = new_token(TK_RESERVED, cur, p, len);
+            p += len;
             continue;
-        } 
+
+        }
 
         if (isalnum(*p)) {
             char *q = p++;
