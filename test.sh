@@ -22,6 +22,10 @@ assert() {
     fi
 }
 
+assert 3 'if (0) return 2; return 3;'
+assert 3 'if (1-1) return 2; return 3;'
+assert 2 'if(1) return 2; return 3;'
+assert 2 'if(2-1) return 2; return 3;'
 assert 10 'returnhoge = 10; return returnhoge;';
 assert 10 'return 10;'
 assert 10 'return 10;return 20;'

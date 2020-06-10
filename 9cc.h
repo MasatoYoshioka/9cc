@@ -59,6 +59,7 @@ typedef enum {
     ND_ASSIGN, // =
     ND_VAR, // Variable
     ND_RETURN, // Return
+    ND_IF, // IF
 } NodeKind;
 
 // Ast Node
@@ -71,6 +72,8 @@ struct Node {
     Node *next; // 次のNode
     Var *var; // ND_VARの時に使う 変数の名前
     long val;  // 値
+    Node *cond; // if cond
+    Node *then; // if then
 };
 
 typedef struct Function Function;
