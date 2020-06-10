@@ -3,7 +3,7 @@
 if [[ $# -eq 0 ]]; then
     cmd="bash"
 else
-    cmd="$@"
+    cmd=("$@")
 fi
 
 docker run \
@@ -12,4 +12,4 @@ docker run \
     -v "${PWD}":/9cc \
     -w /9cc \
     compilerbook \
-    ${cmd}
+    "${cmd[@]}"
