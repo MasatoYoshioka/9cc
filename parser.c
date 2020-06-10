@@ -96,9 +96,10 @@ static Node *stmt() {
     Node *node;
     if (consume("return")) {
         node = new_unary(ND_RETURN, expr());
-    } else {
-        node = expr();
+        expect(";");
+        return node;
     }
+    node = expr();
     expect(";");
     return node;
 }
