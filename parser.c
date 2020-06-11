@@ -91,7 +91,7 @@ Function *program() {
 }
 
 // stmt = expr ";"
-//         | "if" "(" expr ")" stmt?
+//         | "if" "(" expr ")" stmt ("else" stmt)?
 //         | "return" expr ";"
 static Node *stmt() {
     if (consume("return")) {
@@ -105,6 +105,8 @@ static Node *stmt() {
         node->cond = expr();
         expect(")");
         node->then = stmt();
+        if (consume("else"))
+            node->els = stmt();
         return node;
     }
     Node *node = expr();

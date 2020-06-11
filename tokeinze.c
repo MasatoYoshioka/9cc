@@ -76,7 +76,7 @@ bool at_eof() {
 }
 
 static char *starts_with_reserved(char *p) {
-    static char *kw[] = {"return", "if"};
+    static char *kw[] = {"return", "if", "else" };
     for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++) {
         int len = strlen(kw[i]);
         if (startswith(p, kw[i]) && !isalnum(p[len])) {

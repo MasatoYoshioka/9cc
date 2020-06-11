@@ -74,6 +74,7 @@ struct Node {
     long val;  // 値
     Node *cond; // if cond
     Node *then; // if then
+    Node *els; // if else
 };
 
 typedef struct Function Function;
