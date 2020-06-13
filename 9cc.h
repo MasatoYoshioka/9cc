@@ -62,6 +62,7 @@ typedef enum {
     ND_IF, // IF
     ND_WHILE, // WHILE
     ND_FOR, // FOR
+    ND_BLOCK, // Block {}
 } NodeKind;
 
 // Ast Node
@@ -79,6 +80,7 @@ struct Node {
     Node *els; // if else
     Node *init; // for init
     Node *inc; // for increment
+    Node *body; // {} Block
 };
 
 typedef struct Function Function;

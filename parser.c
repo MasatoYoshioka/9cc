@@ -64,8 +64,10 @@ static Node *primary();
 
 // program = stmt
 // stmt = expr ";"
+//         | "{" stmt* "}"
 //         | "if" "(" expr ")" stmt ("else" stmt)?
 //         | "while" "(" expr ")" stmt
+//         | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //         | "return" expr ";"
 // expr = assign
 // assign = equality ("=" assign)?
@@ -93,6 +95,7 @@ Function *program() {
 }
 
 // stmt = expr ";"
+//         | "{" stmt* "}"
 //         | "if" "(" expr ")" stmt ("else" stmt)?
 //         | "while" "(" expr ")" stmt
 //         | "for" "(" expr? ";" expr? ";" expr? ")" stmt
@@ -137,6 +140,17 @@ static Node *stmt() {
             expect(")");
         }
         node->then = stmt();
+        return node;
+    }
+    if (consume("{")) {
+        Node head = {};
+        Node *cur = &head;
+        while(!consume("}")) {
+            cur->next = stmt();
+            cur = cur->next;
+        }
+        Node *node = new_node(ND_BLOCK);
+        node->body = head.next;
         return node;
     }
     Node *node = expr();
