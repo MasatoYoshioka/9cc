@@ -61,6 +61,7 @@ typedef enum {
     ND_RETURN, // Return
     ND_IF, // IF
     ND_WHILE, // WHILE
+    ND_FOR, // FOR
 } NodeKind;
 
 // Ast Node
@@ -76,6 +77,8 @@ struct Node {
     Node *cond; // if cond
     Node *then; // if then
     Node *els; // if else
+    Node *init; // for init
+    Node *inc; // for increment
 };
 
 typedef struct Function Function;
