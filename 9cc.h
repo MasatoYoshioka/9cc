@@ -63,6 +63,7 @@ typedef enum {
     ND_WHILE, // WHILE
     ND_FOR, // FOR
     ND_BLOCK, // Block {}
+    ND_FUNCALL, // Function cal
 } NodeKind;
 
 // Ast Node
@@ -81,6 +82,7 @@ struct Node {
     Node *init; // for init
     Node *inc; // for increment
     Node *body; // {} Block
+    char *funcname; // funcion call name
 };
 
 typedef struct Function Function;

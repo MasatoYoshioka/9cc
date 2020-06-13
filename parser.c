@@ -260,7 +260,9 @@ static Node *unary() {
     return primary();
 }
 
-// primary = num | ident | "(" expr ")"
+// primary = num 
+//          | ident ("(" ")")?
+//          | "(" expr ")"
 static Node *primary() {
     if (consume("(")) {
         Node *node = expr();
@@ -271,6 +273,12 @@ static Node *primary() {
     Token *t = consume_ident();
 
     if (t) {
+        if (consume("(")) {
+            expect(")");
+            Node *node = new_node(ND_FUNCALL);
+            node->funcname = strndup(t->str, t->len);
+            return node;
+        }
         
         Var *var = find_var(t);
         if(!var) 
