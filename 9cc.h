@@ -60,6 +60,7 @@ typedef enum {
     ND_VAR, // Variable
     ND_RETURN, // Return
     ND_IF, // IF
+    ND_WHILE, // WHILE
 } NodeKind;
 
 // Ast Node
