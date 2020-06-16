@@ -76,7 +76,7 @@ static Node *primary();
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" unary | "-" unary)? primary
-// primary = num | indent | "(" expr ")"
+// primary = num | indent func_args? | "(" expr ")"
 
 Function *program() {
     locals = NULL;
@@ -260,8 +260,23 @@ static Node *unary() {
     return primary();
 }
 
+// func_args = "(" (assign ("," assign)*)? ")"
+static Node *func_args() {
+    if (consume(")"))
+        return NULL;
+
+    Node *head = assign();
+    Node *cur = head;
+    while (consume(",")) {
+        cur->next = assign();
+        cur = cur->next;
+    }
+    expect(")");
+    return head;
+}
+
 // primary = num 
-//          | ident ("(" ")")?
+//          | ident func_args?
 //          | "(" expr ")"
 static Node *primary() {
     if (consume("(")) {
@@ -274,9 +289,9 @@ static Node *primary() {
 
     if (t) {
         if (consume("(")) {
-            expect(")");
             Node *node = new_node(ND_FUNCALL);
             node->funcname = strndup(t->str, t->len);
+            node->args = func_args();
             return node;
         }
         

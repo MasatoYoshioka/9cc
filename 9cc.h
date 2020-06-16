@@ -83,6 +83,7 @@ struct Node {
     Node *inc; // for increment
     Node *body; // {} Block
     char *funcname; // funcion call name
+    Node *args; // function args
 };
 
 typedef struct Function Function;
