@@ -48,6 +48,14 @@ long expect_number() {
     return val;
 }
 
+char *expect_ident() {
+    if (token->kind != TK_INDENT)
+        error_at(token->str, "識別子ではありません");
+    char *s = strndup(token->str, token->len);
+    token = token->next;
+    return s;
+}
+
 
 void expect(char *op) {
     if (token->kind != TK_RESERVED || 

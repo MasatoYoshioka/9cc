@@ -1,7 +1,9 @@
 #include "9cc.h"
 
-static int labelseq = 1;
 static char *argreg[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
+static int labelseq = 1;
+static char *funcname;
 
 static void gen_val(Node *node) {
     if (node->kind != ND_VAR)
@@ -41,9 +43,7 @@ static void gen(Node *node) {
         case ND_RETURN:
             gen(node->lhs);
             printf("  pop rax\n");
-            printf("  mov rsp, rbp\n");
-            printf("  pop rbp\n");
-            printf("  ret\n");
+            printf("  jmp .L.return.%s\n", funcname);
             return;
         case ND_IF: {
             int seq = labelseq++;
@@ -181,21 +181,25 @@ static void gen(Node *node) {
 
 void codegen(Function *prog) {
     printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
 
-    // prologue
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
-    printf("  sub rsp, %d\n", prog->stack_size);
+    for (Function *fn = prog; fn; fn = fn->next) {
+        printf(".global %s\n", fn->name);
+        printf("%s:\n", fn->name);
+        funcname = fn->name;
 
-    for (Node *n = prog->node; n; n = n->next) {
-        gen(n);
-        printf("  pop rax\n");
+        // prologue
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+        printf("  sub rsp, %d\n", fn->stack_size);
+
+        for (Node *n = fn->node; n; n = n->next)
+            gen(n);
+
+        // epilogue
+        printf(".L.return.%s:\n", funcname);
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
+
     }
-
-    // epilogue
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-    printf("  ret\n");
 }

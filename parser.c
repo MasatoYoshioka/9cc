@@ -52,6 +52,7 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
+static Function *function();
 static Node *stmt();
 static Node *expr();
 static Node *assign();
@@ -62,7 +63,8 @@ static Node *mul();
 static Node *unary();
 static Node *primary();
 
-// program = stmt
+// program = function*
+// function = ident "(" ")" "{" stmt "}"
 // stmt = expr ";"
 //         | "{" stmt* "}"
 //         | "if" "(" expr ")" stmt ("else" stmt)?
@@ -78,20 +80,40 @@ static Node *primary();
 // unary = ("+" unary | "-" unary)? primary
 // primary = num | indent func_args? | "(" expr ")"
 
+// program = function*
 Function *program() {
+    Function head = {};
+    Function *cur = &head;
+
+    while(!at_eof()) {
+        cur->next = function();
+        cur = cur->next;
+    }
+    return head.next;
+}
+
+// function = ident "(" ")" "{" stmt "}"
+static Function *function() {
     locals = NULL;
+
+    char *name = expect_ident();
+    expect("(");
+    expect(")");
+    expect("{");
+
     Node head = {};
     Node *cur = &head;
 
-    while(!at_eof()) {
+    while(!consume("}")) {
         cur->next = stmt();
         cur = cur->next;
     }
 
-    Function *prog = calloc(1, sizeof(Function));
-    prog->node = head.next;
-    prog->locals = locals;
-    return prog;
+    Function *fn = calloc(1, sizeof(Function));
+    fn->name = name;
+    fn->node = head.next;
+    fn->locals = locals;
+    return fn;
 }
 
 // stmt = expr ";"
