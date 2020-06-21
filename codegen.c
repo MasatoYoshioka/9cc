@@ -8,8 +8,7 @@ static char *funcname;
 static void gen_val(Node *node) {
     if (node->kind != ND_VAR)
         error("代入の左辺値が変数ではありません");
-    printf("  mov rax, rbp\n");
-    printf("  sub rax, %d\n", node->var->offset);
+    printf("  lea rax, [rbp-%d]\n", node->var->offset);
     printf("  push rax\n");
 }
 
@@ -192,8 +191,10 @@ void codegen(Function *prog) {
         printf("  mov rbp, rsp\n");
         printf("  sub rsp, %d\n", fn->stack_size);
 
-        for (Node *n = fn->node; n; n = n->next)
+        for (Node *n = fn->node; n; n = n->next) {
             gen(n);
+            printf("  pop rax\n");
+        }
 
         // epilogue
         printf(".L.return.%s:\n", funcname);
