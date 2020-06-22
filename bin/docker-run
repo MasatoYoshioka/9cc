@@ -9,6 +9,8 @@ fi
 docker run \
     -it \
     --rm \
+    --cap-add=SYS_PTRACE \
+    --security-opt="seccomp=unconfined" \
     -v "${PWD}":/9cc \
     -w /9cc \
     compilerbook \
