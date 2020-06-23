@@ -118,7 +118,7 @@ Token *tokenize(char *p) {
             p += 2;
             continue;
         }
-        if (strchr("+-*/()<>;={},", *p)) {
+        if (strchr("+-*/()<>;={},*&", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             cur->val = *p;
             p++;

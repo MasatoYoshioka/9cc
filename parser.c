@@ -99,7 +99,7 @@ static Node *primary();
 // relational = add ("<=" add | "<" add | ">=" add | ">" add)*
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
-// unary = ("+" unary | "-" unary)? primary
+// unary = ("+" | "-" | "*" | "&" )? unary
 // primary = num | indent func_args? | "(" expr ")"
 
 // program = function*
@@ -295,12 +295,16 @@ static Node *mul() {
     return node;
 }
 
-// unary = ("+" unary | "-" unary)? primary
+// unary = ("+" | "-" | "*" | "&" )? unary
 static Node *unary() {
     if (consume("+"))
         return unary();
     if (consume("-"))
         return new_binary(ND_SUB, new_num(0), unary());
+    if (consume("&"))
+        return new_unary(ND_ADDR, unary());
+    if (consume("*"))
+        return new_unary(ND_DEREF, unary());
     return primary();
 }
 

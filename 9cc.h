@@ -71,6 +71,8 @@ typedef enum {
     ND_FOR, // FOR
     ND_BLOCK, // Block {}
     ND_FUNCALL, // Function cal
+    ND_ADDR, // *
+    ND_DEREF, // &
 } NodeKind;
 
 // Ast Node
