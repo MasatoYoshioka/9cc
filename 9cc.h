@@ -27,9 +27,10 @@ struct Token {
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
+void error_tok(Token *tok, char *fmt, ...);
 
 Token *tokenize(char *input);
-bool consume(char *op);
+Token *consume(char *op);
 Token *consume_ident();
 long expect_number();
 void expect(char *op);
@@ -83,6 +84,7 @@ struct Node {
     Node *lhs; // 左辺
     Node *rhs; // 右辺
     Node *next; // 次のNode
+    Token *tok; // Token
     Var *var; // ND_VARの時に使う 変数の名前
     long val;  // 値
     Node *cond; // if cond

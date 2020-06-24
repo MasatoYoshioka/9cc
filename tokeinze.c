@@ -11,9 +11,7 @@ void error(char *fmt, ...) {
     exit(1);
 }
 
-void error_at(char *loc, char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
+static void verror_at(char *loc, char *fmt, va_list ap) {
 
     int pos = loc - user_input;
     fprintf(stderr, "%s\n", user_input);
@@ -23,13 +21,26 @@ void error_at(char *loc, char *fmt, ...) {
     exit(1);
 }
 
-bool consume(char *op) {
+void error_at(char *loc, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    verror_at(loc, fmt, ap);
+}
+
+void error_tok(Token *tok, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    verror_at(tok->str, fmt, ap);
+}
+
+Token *consume(char *op) {
     if (token->kind != TK_RESERVED || 
         strlen(op) != token->len ||
         memcmp(token->str, op, token->len))
-        return false;
+        return NULL;
+    Token *t = token;
     token = token->next;
-    return true;
+    return t;
 }
 
 Token *consume_ident() {
@@ -42,7 +53,7 @@ Token *consume_ident() {
 
 long expect_number() {
     if (token->kind != TK_NUM)
-        error_at(token->str, "数値ではありません");
+        error_tok(token, "数値ではありません");
     long val = token->val;
     token = token->next;
     return val;
@@ -50,7 +61,7 @@ long expect_number() {
 
 char *expect_ident() {
     if (token->kind != TK_INDENT)
-        error_at(token->str, "識別子ではありません");
+        error_tok(token, "識別子ではありません");
     char *s = strndup(token->str, token->len);
     token = token->next;
     return s;
@@ -61,7 +72,7 @@ void expect(char *op) {
     if (token->kind != TK_RESERVED || 
         strlen(op) != token->len ||
         memcmp(token->str, op, token->len))
-        error_at(token->str, "'%s'ではありません", op);
+        error_tok(token, "'%s'ではありません", op);
     token = token->next;
 }
 

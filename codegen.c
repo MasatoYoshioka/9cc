@@ -18,7 +18,7 @@ static void gen_val(Node *node) {
             gen(node->lhs);
             return;
         default:
-            error("代入の左辺値が変数ではありません");
+            error_tok(node->tok, "代入の左辺値が変数ではありません");
     }
 }
 
