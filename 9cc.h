@@ -7,6 +7,8 @@
 #include <ctype.h>
 #include <stdarg.h>
 
+typedef struct Type Type;
+
 // tokenize.c
 typedef enum {
     TK_RESERVED, // punctuators
@@ -55,8 +57,11 @@ struct VarList {
 
 // parser
 typedef enum {
-    ND_ADD,
-    ND_SUB,
+    ND_ADD, // num + num
+    ND_PTR_ADD, // ptr + num or num + ptr
+    ND_SUB, // num - num
+    ND_PTR_SUB, // ptr - num 
+    ND_PTR_DIFF, // ptr - ptr
     ND_MUL,
     ND_DIV,
     ND_NUM,
@@ -72,6 +77,7 @@ typedef enum {
     ND_FOR, // FOR
     ND_BLOCK, // Block {}
     ND_FUNCALL, // Function cal
+    ND_EXPR_STMT, // Expression statement
     ND_ADDR, // *
     ND_DEREF, // &
 } NodeKind;
@@ -95,6 +101,7 @@ struct Node {
     Node *body; // {} Block
     char *funcname; // funcion call name
     Node *args; // function args
+    Type *ty; // type, e.g. int or pointer to int
 };
 
 typedef struct Function Function;
@@ -109,6 +116,19 @@ struct Function {
 };
 
 Function *program();
+
+typedef enum {
+    TY_INT,
+    TY_PTR,
+} TypeKind;
+
+struct Type {
+    TypeKind kind;
+    Type *base;
+};
+
+bool is_integer(Type *ty);
+void add_type(Node *node);
 
 // codegen
 void codegen(Function *prog);

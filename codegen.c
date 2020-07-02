@@ -40,6 +40,10 @@ static void gen(Node *node) {
         case ND_NUM:
             printf("  push %ld\n", node->val);
             return;
+        case ND_EXPR_STMT:
+          gen(node->lhs);
+          printf("  add rsp, 8\n");
+          return;
         case ND_VAR:
             gen_val(node);
             load();
@@ -158,8 +162,22 @@ static void gen(Node *node) {
         case ND_ADD:
             printf("  add rax, rdi\n");
             break;
+        case ND_PTR_ADD:
+            printf("  imul rdi, 8\n");
+            printf("  add rax, rdi\n");
+            break;
         case ND_SUB:
             printf("  sub rax, rdi\n");
+            break;
+        case ND_PTR_SUB:
+            printf("  imul rdi, 8\n");
+            printf("  sub rax, rdi\n");
+            break;
+        case ND_PTR_DIFF:
+            printf("  sub rax, rdi\n");
+            printf("  cqo\n");
+            printf("  mov rdi, 8\n");
+            printf("  idiv rdi\n");
             break;
         case ND_MUL:
             printf("  imul rax, rdi\n");

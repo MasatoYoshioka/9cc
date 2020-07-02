@@ -77,6 +77,7 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs, Token *tok) {
 
 static Function *function();
 static Node *stmt();
+static Node *stmt2();
 static Node *expr();
 static Node *assign();
 static Node *equality();
@@ -139,13 +140,24 @@ static Function *function() {
     return fn;
 }
 
+static Node *read_expr_stmt() {
+    Token *tok = token;
+    return new_unary(ND_EXPR_STMT, expr(), tok);
+}
+
+static Node *stmt() {
+    Node *node = stmt2();
+    add_type(node);
+    return node;
+}
+
 // stmt = expr ";"
 //         | "{" stmt* "}"
 //         | "if" "(" expr ")" stmt ("else" stmt)?
 //         | "while" "(" expr ")" stmt
 //         | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 //         | "return" expr ";"
-static Node *stmt() {
+static Node *stmt2() {
     Token *tok;
     if ((tok = consume("return"))) {
         Node *node = new_unary(ND_RETURN, expr(), tok);
@@ -174,7 +186,7 @@ static Node *stmt() {
         Node *node = new_node(ND_FOR, tok);
         expect("(");
         if (!consume(";")) {
-            node->init = expr();
+            node->init = read_expr_stmt();
             expect(";");
         }
         if (!consume(";")) {
@@ -182,7 +194,7 @@ static Node *stmt() {
             expect(";");
         }
         if (!consume(")")) {
-            node->inc = expr();
+            node->inc = read_expr_stmt();
             expect(")");
         }
         node->then = stmt();
@@ -199,7 +211,7 @@ static Node *stmt() {
         node->body = head.next;
         return node;
     }
-    Node *node = expr();
+    Node *node = read_expr_stmt();
     expect(";");
     return node;
 }
@@ -265,17 +277,45 @@ static Node *relational() {
     return node;
 }
 
+static Node *new_add(Node *lhs, Node *rhs, Token *tok) {
+    add_type(lhs);
+    add_type(rhs);
+
+    if (is_integer(lhs->ty) && is_integer(rhs->ty))
+        return new_binary(ND_ADD, lhs, rhs, tok);
+    if (lhs->ty->base && is_integer(rhs->ty))
+        return new_binary(ND_PTR_ADD, lhs, rhs, tok);
+    if (is_integer(lhs->ty) && rhs->ty->base)
+        return new_binary(ND_PTR_ADD, rhs, lhs, tok);
+    error_tok(tok, "invalid operands");
+}
+
+static Node *new_sub(Node *lhs, Node *rhs, Token *tok) {
+    add_type(lhs);
+    add_type(rhs);
+
+    if (is_integer(lhs->ty) && is_integer(rhs->ty))
+        return new_binary(ND_SUB, lhs, rhs, tok);
+    if (lhs->ty->base && is_integer(rhs->ty))
+        return new_binary(ND_PTR_SUB, lhs, rhs, tok);
+    if (is_integer(rhs->ty) && lhs->ty->base)
+        return new_binary(ND_PTR_SUB, rhs, lhs, tok);
+    if (lhs->ty->base && rhs->ty->base)
+        return new_binary(ND_PTR_DIFF, lhs, rhs, tok);
+    error_tok(tok, "invalid operands");
+}
+
 static Node *add() {
     Node *node = mul();
     Token *tok;
 
     for(;;) {
         if ((tok = consume("+"))) {
-            node = new_binary(ND_ADD, node, mul(), tok);
+            node = new_add(node, mul(), tok);
             continue;
         }
         if ((tok = consume("-"))) {
-            node = new_binary(ND_SUB, node, mul(), tok);
+            node = new_sub(node, mul(), tok);
             continue;
         }
         break;
