@@ -31,6 +31,7 @@ void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 void error_tok(Token *tok, char *fmt, ...);
 
+Token *peek(char *s);
 Token *tokenize(char *input);
 Token *consume(char *op);
 Token *consume_ident();
@@ -45,6 +46,7 @@ typedef struct Var Var;
 
 struct Var {
     char *name;
+    Type *ty;
     int offset;
 };
 
@@ -80,6 +82,7 @@ typedef enum {
     ND_EXPR_STMT, // Expression statement
     ND_ADDR, // *
     ND_DEREF, // &
+    ND_NULL,  // empty statement
 } NodeKind;
 
 // Ast Node
@@ -124,10 +127,14 @@ typedef enum {
 
 struct Type {
     TypeKind kind;
-    Type *base;
+    Type *base; // pointer
+    Token *name; // declaration
 };
 
+extern Type *int_type;
+
 bool is_integer(Type *ty);
+Type *pointer_to(Type *base);
 void add_type(Node *node);
 
 // codegen
