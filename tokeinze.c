@@ -33,6 +33,17 @@ void error_tok(Token *tok, char *fmt, ...) {
     verror_at(tok->str, fmt, ap);
 }
 
+Token *consume_sizeof() {
+    int len = strlen("sizeof");
+    if (token->kind != TK_SIZEOF ||
+            len != token->len ||
+            memcmp(token->str, "sizeof", len))
+        return NULL;
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 Token *consume(char *op) {
     if (token->kind != TK_RESERVED || 
         strlen(op) != token->len ||
@@ -148,6 +159,12 @@ Token *tokenize(char *p) {
             p += len;
             continue;
 
+        }
+
+        if (startswith(p, "sizeof") && !isalnum(p[6])) {
+            cur = new_token(TK_SIZEOF, cur, p, 6);
+            p += 6;
+            continue;
         }
 
         if (isalnum(*p)) {

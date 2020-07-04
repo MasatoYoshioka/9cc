@@ -15,6 +15,7 @@ typedef enum {
     TK_INDENT, // 識別子
     TK_NUM, // number
     TK_EOF, // end of file marker
+    TK_SIZEOF, // sizeof
 } TokenKind;
 
 typedef struct Token Token;
@@ -35,6 +36,7 @@ Token *peek(char *s);
 Token *tokenize(char *input);
 Token *consume(char *op);
 Token *consume_ident();
+Token *consume_sizeof();
 long expect_number();
 void expect(char *op);
 bool at_eof();

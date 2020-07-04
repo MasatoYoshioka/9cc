@@ -379,9 +379,23 @@ static Node *mul() {
     return node;
 }
 
-// unary = ("+" | "-" | "*" | "&" )? unary
+int size(Type *type) {
+    if (type->kind == TY_INT)
+        return 4;
+    if (type->kind == TY_PTR)
+        return 8;
+    error("有効な型ではありません");
+    return 0;
+}
+
+// unary = ("sizeof" | "+" | "-" | "*" | "&" )? unary
 static Node *unary() {
     Token *tok;
+    if ((tok = consume_sizeof())) {
+        Node *node = expr();
+        add_type(node);
+        return new_num(size(node->ty), tok);
+    }
     if (consume("+"))
         return unary();
     if ((tok = consume("-")))
