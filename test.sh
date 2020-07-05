@@ -1,16 +1,5 @@
 #!/bin/sh
 
-cat <<EOF | gcc -xc -c -o tmp2.o -
-int ret3() { return 3; }
-int ret5() { return 5; }
-int add(int x, int y) { return x + y; }
-int sub(int x, int y) { return x - y; }
-
-int add6(int a, int b, int c, int d, int e, int f) {
-    return a + b + c + d + e + f;
-}
-EOF
-
 assert() {
     expected="$1"
     input="$2"
@@ -21,7 +10,7 @@ assert() {
         echo 'compile error'
         exit 1;
     fi
-    gcc -static -o tmp tmp.s tmp2.o
+    gcc -static -o tmp tmp.s
     ./tmp
     actual="$?"
 
@@ -32,6 +21,7 @@ assert() {
         exit 1;
     fi
 }
+
 assert 4  'int main() { int a; return sizeof(a); }'
 assert 8  'int main() { int *a; return sizeof(a); }'
 assert 8  'int main() { int *a; return sizeof(a); } int sizeofhoge() { return 100; }'
@@ -47,11 +37,11 @@ assert 7  'int main() { return add2(3,4); } int add2(int x, int y) { return x+y;
 assert 1  'int main() { return sub2(4,3); } int sub2(int x, int y) { return x-y; }'
 assert 55 'int main() { return fib(9); } int fib(int x) { if (x<=1) return 1; return fib(x-1) + fib(x-2); }'
 assert 32 'int main() { return ret32(); } int ret32() { return 32; }'
-assert 8  'int main() { return add(3, 5); }'
-assert 2  'int main() { return sub(5, 3); }'
-assert 21 'int main() { return add6(1,2,3,4,5,6); }'
-assert 3  'int main() { return ret3(); }'
-assert 5  'int main() { return ret5(); }'
+assert 8  'int main() { return add(3, 5); } int add(int x, int y) { return x + y;}'
+assert 2  'int main() { return sub(5, 3); } int sub(int x, int y) { return x - y;}'
+assert 21 'int main() { return add6(1,2,3,4,5,6); } int add6(int a, int b, int c, int d, int e, int f) { return a + b + c + d + e + f;}'
+assert 3  'int main() { return ret3(); } int ret3 () { return 3; }'
+assert 5  'int main() { return ret5(); } int ret5() { return 5;}'
 assert 3  'int main() { 1; {2;} return 3; }'
 assert 55 'int main() { int i=0;int j=0;for(i=0;i<=10;i=i+1) j=i+j;return j; }'
 assert 55 'int main() { int i=0;int j=0;for(i=0;i<=10;i=i+1){ j=i+j;}return j; }'
