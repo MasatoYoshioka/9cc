@@ -7,8 +7,7 @@ static char *funcname;
 
 static void gen(Node *node);
 
-static void gen_val(Node *node) {
-    char *msg;
+static void gen_addr(Node *node) {
     switch (node->kind) {
         case ND_VAR:
             printf("  lea rax, [rbp-%d]\n", node->var->offset);
@@ -20,6 +19,12 @@ static void gen_val(Node *node) {
         default:
             error_tok(node->tok, "代入の左辺値が変数ではありません");
     }
+}
+
+static void gen_lval(Node *node) {
+    if (node->ty->kind == TY_ARRAY)
+        error_tok(node->tok, "左辺値ではありません");
+    gen_addr(node);
 }
 
 static void load() {
@@ -47,11 +52,12 @@ static void gen(Node *node) {
           printf("  add rsp, 8\n");
           return;
         case ND_VAR:
-            gen_val(node);
-            load();
+            gen_addr(node);
+            if (node->ty->kind != TY_ARRAY)
+                load();
             return;
         case ND_ASSIGN:
-            gen_val(node->lhs);
+            gen_lval(node->lhs);
             gen(node->rhs);
             store();
             return;
@@ -61,11 +67,12 @@ static void gen(Node *node) {
             printf("  jmp .L.return.%s\n", funcname);
             return;
         case ND_ADDR:
-            gen_val(node->lhs);
+            gen_addr(node->lhs);
             return;
         case ND_DEREF:
             gen(node->lhs);
-            load();
+            if (node->ty->kind != TY_ARRAY)
+                load();
             return;
         case ND_IF: {
             int seq = labelseq++;

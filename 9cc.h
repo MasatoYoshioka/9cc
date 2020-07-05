@@ -125,19 +125,21 @@ Function *program();
 typedef enum {
     TY_INT,
     TY_PTR,
+    TY_ARRAY,
 } TypeKind;
 
 struct Type {
     TypeKind kind;
     int size; // sizeof() value
     Type *base; // pointer
-    Token *name; // declaration
+    int array_len;
 };
 
 extern Type *int_type;
 
 bool is_integer(Type *ty);
 Type *pointer_to(Type *base);
+Type *array_of(Type *base, int size);
 void add_type(Node *node);
 
 // codegen
