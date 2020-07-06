@@ -397,24 +397,10 @@ static Node *mul() {
     return node;
 }
 
-int size(Type *type) {
-    if (type->kind == TY_INT)
-        return 4;
-    if (type->kind == TY_PTR)
-        return 8;
-    error("有効な型ではありません");
-    return 0;
-}
-
 // unary = ("sizeof" | "+" | "-" | "*" | "&" )? unary
 //       | postfix
 static Node *unary() {
     Token *tok;
-    if ((tok = consume_sizeof())) {
-        Node *node = expr();
-        add_type(node);
-        return new_num(size(node->ty), tok);
-    }
     if (consume("+"))
         return unary();
     if ((tok = consume("-")))
@@ -458,13 +444,18 @@ static Node *func_args() {
 //          | ident func_args?
 //          | "(" expr ")"
 static Node *primary() {
+    Token *tok;
     if (consume("(")) {
         Node *node = expr();
         expect(")");
         return node;
     }
 
-    Token *tok;
+    if ((tok = consume("sizeof"))) {
+        Node *node = unary();
+        add_type(node);
+        return new_num(node->ty->size, tok);
+    }
 
     if ((tok = consume_ident())) {
         if (consume("(")) {
