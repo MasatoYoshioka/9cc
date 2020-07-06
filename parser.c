@@ -112,6 +112,7 @@ static Node *relational();
 static Node *add();
 static Node *mul();
 static Node *unary();
+static Node *postfix();
 static Node *primary();
 
 // program = function*
@@ -129,6 +130,8 @@ static Node *primary();
 // add = mul ("+" mul | "-" mul)*
 // mul = unary ("*" unary | "/" unary)*
 // unary = ("+" | "-" | "*" | "&" )? unary
+//       | postfix   
+// postfix = primary ("[" expr "]")*
 // primary = num | indent func_args? | "(" expr ")"
 
 // program = function*
@@ -404,6 +407,7 @@ int size(Type *type) {
 }
 
 // unary = ("sizeof" | "+" | "-" | "*" | "&" )? unary
+//       | postfix
 static Node *unary() {
     Token *tok;
     if ((tok = consume_sizeof())) {
@@ -419,7 +423,20 @@ static Node *unary() {
         return new_unary(ND_ADDR, unary(), tok);
     if ((tok = consume("*")))
         return new_unary(ND_DEREF, unary(), tok);
-    return primary();
+    return postfix();
+}
+
+// postfix = primary ("[" expr "]")*
+static Node *postfix() {
+    Node *node = primary();
+    Token *tok;
+
+    while ((tok = consume("["))) {
+        Node *exp = new_add(node, expr(), tok);
+        expect("]");
+        node = new_unary(ND_DEREF, exp, tok);
+    }
+    return node;
 }
 
 // func_args = "(" (assign ("," assign)*)? ")"
