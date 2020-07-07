@@ -1,6 +1,7 @@
 #include "9cc.h"
 
 static VarList *locals;
+static VarList *globals;
 
 static Var *find_var(Token *tok) {
     for (VarList *vl = locals; vl; vl = vl->next) {
@@ -9,18 +10,41 @@ static Var *find_var(Token *tok) {
                 && !memcmp(tok->str, var->name, tok->len))
             return var;
     }
+
+    for (VarList *vl = globals; vl; vl = vl->next) {
+        Var *var = vl->var;
+        if (strlen(var->name) == tok->len
+                && !memcmp(tok->str, var->name, tok->len))
+            return var;
+    }
     return NULL;
 }
 
-static Var *new_var(char *name, Type *ty) {
+static Var *new_var(char *name, Type *ty, bool is_local) {
     Var *var = calloc(1, sizeof(Var));
     var->name = name;
     var->ty = ty;
+    var->is_local = is_local;
+
+    return var;
+}
+static Var *new_lvar(char *name, Type *ty) {
+    Var *var = new_var(name, ty, true);
 
     VarList *vl = calloc(1, sizeof(VarList));
     vl->var = var;
     vl->next = locals;
     locals = vl;
+    return var;
+}
+
+static Var *new_gvar(char *name, Type *ty) {
+    Var *var = new_var(name, ty, false);
+
+    VarList *vl = calloc(1, sizeof(VarList));
+    vl->var = var;
+    vl->next = globals;
+    globals = vl;
     return var;
 }
 
@@ -48,7 +72,7 @@ static VarList *read_func_param() {
 
 
     VarList *vl = calloc(1, sizeof(VarList));
-    vl->var = new_var(name, ty);
+    vl->var = new_lvar(name, ty);
     return vl;
 }
 
@@ -103,6 +127,8 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs, Token *tok) {
 }
 
 static Function *function();
+static Type *basetype();
+static void global_var();
 static Node *stmt();
 static Node *stmt2();
 static Node *expr();
@@ -134,16 +160,33 @@ static Node *primary();
 // postfix = primary ("[" expr "]")*
 // primary = num | indent func_args? | "(" expr ")"
 
+static bool is_function() {
+    Token *tok = token;
+    basetype();
+    bool isFunc = consume_ident() && consume("(");
+    token = tok;
+    return isFunc;
+}
+
 // program = function*
-Function *program() {
+Program *program() {
     Function head = {};
     Function *cur = &head;
+    globals = NULL;
 
     while(!at_eof()) {
-        cur->next = function();
-        cur = cur->next;
+        if (is_function()) {
+            cur->next = function();
+            cur = cur->next;
+        } else {
+            global_var();
+        }
     }
-    return head.next;
+
+    Program *prog = calloc(1, sizeof(Program));
+    prog->globals = globals;
+    prog->fns = head.next;
+    return prog;
 }
 
 // function = basetype ident "(" params? ")" "{" stmt "}"
@@ -172,13 +215,22 @@ static Function *function() {
     return fn;
 }
 
+// global_var = basetype ident ("[" numn "]")* ";"
+static void global_var() {
+    Type *ty = basetype();
+    char *name = expect_ident();
+    ty = read_type_suffix(ty);
+    expect(";");
+    new_gvar(name, ty);
+}
+
 // declation = basetype ident ("[" num "]")* ("=" expr) ";"
 static Node *declaration() {
     Token *tok = token;
     Type *ty = basetype();
     char *name = expect_ident();
     ty = read_type_suffix(ty);
-    Var *var = new_var(name, ty);
+    Var *var = new_lvar(name, ty);
     if (consume(";"))
         return new_node(ND_NULL, tok);
 
