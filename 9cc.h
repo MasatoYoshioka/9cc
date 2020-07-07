@@ -131,6 +131,7 @@ typedef enum {
     TY_INT,
     TY_PTR,
     TY_ARRAY,
+    TY_CHAR,
 } TypeKind;
 
 struct Type {
@@ -141,6 +142,7 @@ struct Type {
 };
 
 extern Type *int_type;
+extern Type *char_type;
 
 bool is_integer(Type *ty);
 Type *pointer_to(Type *base);

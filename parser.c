@@ -49,8 +49,14 @@ static Var *new_gvar(char *name, Type *ty) {
 }
 
 static Type *basetype() {
-    expect("int");
-    Type *ty = int_type;
+    Type *ty;
+    if (consume("char")) {
+        ty = char_type;
+    } else {
+        expect("int");
+        ty = int_type;
+    }
+
     while (consume("*"))
         ty = pointer_to(ty);
     return ty;
@@ -89,6 +95,10 @@ static VarList *read_func_params() {
         cur = cur->next;
     }
     return head;
+}
+
+static bool is_typename() {
+    return peek("char") || peek("int");
 }
 
 static Node *new_node(NodeKind kind, Token *tok)
@@ -315,7 +325,7 @@ static Node *stmt2() {
         return node;
     }
 
-    if ((tok = peek("int")))
+    if ((is_typename()))
         return declaration();
 
     Node *node = read_expr_stmt();
