@@ -140,7 +140,6 @@ Token *tokenize(char *p) {
             p++;
             continue;
         }
-
         char *kw = starts_with_reserved(p);
         if (kw) {
             int len = strlen(kw);
@@ -148,6 +147,20 @@ Token *tokenize(char *p) {
             p += len;
             continue;
 
+        }
+        if (*p == '"') {
+
+            char *q = p++;
+            while(*p && *p != '"')
+                p++;
+            if (!*p)
+                error_at(q, "文字列が閉じれられてません");
+            p++;
+
+            cur = new_token(TK_STR, cur, q, q - p);
+            cur->contents = strndup(q + 1, p - q - 2);
+            cur->cont_len = p - q - 1;
+            continue;
         }
 
         if (isalnum(*p)) {

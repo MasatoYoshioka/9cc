@@ -504,7 +504,9 @@ static Node *func_args() {
 
 // primary = num 
 //          | ident func_args?
+//          | "sizeof" unary
 //          | "(" expr ")"
+//          | str
 static Node *primary() {
     Token *tok;
     if (consume("(")) {
@@ -534,6 +536,15 @@ static Node *primary() {
     }
 
     tok = token;
+    if (tok->kind == TK_STR) {
+        token = token->next;
+
+        Type *ty = array_of(char_type, tok->cont_len);
+        Var *var = new_gvar(tok->contents, ty);
+        var->contents = tok->contents;
+        var->cont_len = tok->cont_len;
+        return new_var_node(var, tok);
+    }
     if (tok->kind != TK_NUM) {
         error_tok(tok, "式ではありません");
     }

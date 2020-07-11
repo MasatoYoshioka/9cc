@@ -15,6 +15,7 @@ typedef enum {
     TK_INDENT, // 識別子
     TK_NUM, // number
     TK_EOF, // end of file marker
+    TK_STR, // string
 } TokenKind;
 
 typedef struct Token Token;
@@ -25,6 +26,8 @@ struct Token {
     int val;
     char *str;
     int len;
+    char *contents;
+    int cont_len;
 };
 
 void error(char *fmt, ...);
@@ -49,6 +52,8 @@ struct Var {
     Type *ty;
     bool is_local;
     int offset;
+    char *contents;
+    int cont_len;
 };
 
 typedef struct VarList VarList;
