@@ -22,6 +22,10 @@ assert() {
     fi
 }
 
+assert 2   'int main() { /** return 1; **/ return 2;}'
+assert 2   'int main() { // return 2;
+return 2;}';
+exit;
 assert 7   'int main() { return "\a"[0]; }'
 assert 8   'int main() { return "\b"[0]; }'
 assert 9   'int main() { return "\t"[0]; }'
