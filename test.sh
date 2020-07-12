@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 assert() {
     expected="$1"
     input="$2"
 
-    ./9cc "$input" > tmp.s
+    ./9cc <(echo "$input") > tmp.s
 
     if [ "$?" = 1 ]; then
         echo 'compile error'

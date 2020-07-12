@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <errno.h>
+#include <stdio.h>
 
 typedef struct Type Type;
 
@@ -43,6 +45,7 @@ void expect(char *op);
 bool at_eof();
 char *expect_ident();
 
+extern char *filename;
 extern Token *token;
 
 typedef struct Var Var;
