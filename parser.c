@@ -136,6 +136,13 @@ static Node *new_binary(NodeKind kind, Node *lhs, Node *rhs, Token *tok) {
     return node;
 }
 
+static char *new_label() {
+    static int cnt = 0;
+    char buf[20];
+    sprintf(buf, ".L.data.%d", cnt++);
+    return strndup(buf, 20);
+}
+
 static Function *function();
 static Type *basetype();
 static void global_var();
@@ -540,7 +547,7 @@ static Node *primary() {
         token = token->next;
 
         Type *ty = array_of(char_type, tok->cont_len);
-        Var *var = new_gvar(tok->contents, ty);
+        Var *var = new_gvar(new_label(), ty);
         var->contents = tok->contents;
         var->cont_len = tok->cont_len;
         return new_var_node(var, tok);
